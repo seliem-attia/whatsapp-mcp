@@ -290,6 +290,29 @@ Download media from a received message.
 - `message_id` (required): ID of the message with media
 - `chat_jid` (required): JID of the chat containing the message
 
+#### `transcribe_audio`
+
+Transcribe a voice note locally with whisper.cpp and return its text. The
+transcript is also written into the message's `content` field, which is empty
+for every audio message, so afterwards it is readable through `list_messages`
+by any client — including one with no filesystem access — without transcribing
+again. Nothing leaves the machine.
+
+A stored transcript is returned immediately; a fresh one took about 2 s for a
+30-second note with `large-v3-turbo` on an M-series Mac. Transcripts are
+prefixed with `[transcript (whisper <model>)]` so they cannot be mistaken for
+text a human typed, and a real message is never overwritten.
+
+**Requirements:** [whisper.cpp](https://github.com/ggerganov/whisper.cpp)
+(`whisper-cli` on `PATH`), FFmpeg, and `WHISPER_MODEL` pointing at a model
+file. Optionally `WHISPER_LANGUAGE` (default `auto`).
+
+**Parameters:**
+
+- `message_id` (required): ID of the message with the voice note
+- `chat_jid` (required): JID of the chat containing the message
+- `force` (optional): transcribe again even when a transcript is stored
+
 ### Chat Operations
 
 All chat tools (`list_chats`, `get_chat`, `get_direct_chat_by_contact`,

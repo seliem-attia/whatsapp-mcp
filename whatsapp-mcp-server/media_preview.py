@@ -46,12 +46,12 @@ def ffmpeg_available() -> bool:
 
 def validate_max_dimension(max_dimension: int) -> None:
     """Reject preview dimensions outside the bounded, context-safe range."""
-    if not isinstance(max_dimension, int) or isinstance(max_dimension, bool) or not (
-        MIN_MAX_DIMENSION <= max_dimension <= MAX_MAX_DIMENSION
+    if (
+        not isinstance(max_dimension, int)
+        or isinstance(max_dimension, bool)
+        or not (MIN_MAX_DIMENSION <= max_dimension <= MAX_MAX_DIMENSION)
     ):
-        raise PreviewError(
-            f"max_dimension must be an integer from {MIN_MAX_DIMENSION} to {MAX_MAX_DIMENSION} pixels"
-        )
+        raise PreviewError(f"max_dimension must be an integer from {MIN_MAX_DIMENSION} to {MAX_MAX_DIMENSION} pixels")
 
 
 def scale_filter(max_dimension: int) -> str:

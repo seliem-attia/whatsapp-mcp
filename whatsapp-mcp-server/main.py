@@ -2,9 +2,10 @@ import os
 import signal
 import sys
 import tempfile
-from typing import Any
+from typing import Annotated, Any
 
 from mcp.server.fastmcp import FastMCP, Image
+from pydantic import Field
 
 import media_preview
 import transcription
@@ -63,6 +64,16 @@ from whatsapp import (
 # Initialize FastMCP server. Env-var handling is deferred to the __main__ block
 # so importing this module never parses env vars or exits the process.
 mcp = FastMCP("whatsapp")
+
+PreviewDimension = Annotated[
+    int,
+    Field(
+        strict=True,
+        ge=media_preview.MIN_MAX_DIMENSION,
+        le=media_preview.MAX_MAX_DIMENSION,
+        description="Longest preview edge in pixels; must be an integer from 1 to 2048.",
+    ),
+]
 
 
 @mcp.tool()
@@ -469,7 +480,11 @@ def download_media(message_id: str, chat_jid: str) -> dict[str, Any]:
 
 
 @mcp.tool()
-def view_media(message_id: str, chat_jid: str, max_dimension: int = 1024) -> Any:
+def view_media(
+    message_id: str,
+    chat_jid: str,
+    max_dimension: PreviewDimension = media_preview.DEFAULT_MAX_DIMENSION,
+) -> Any:
     """View the media of a WhatsApp message as an image.
 
     download_media only returns a local file path, which a client without

@@ -2727,13 +2727,14 @@ func renderPairingQRCodes(qrChan <-chan whatsmeow.QRChannelItem, w io.Writer, re
 		switch evt.Event {
 		case "code":
 			codes++
+			// Terminal output is best-effort; keep draining pairing events if a write fails.
 			if codes == 1 {
-				fmt.Fprintln(w, "\nScan this QR code with your WhatsApp app:")
+				_, _ = fmt.Fprintln(w, "\nScan this QR code with your WhatsApp app:")
 			} else {
-				fmt.Fprintf(w, "\nQR code refreshed (#%d) - scan this one instead:\n", codes)
+				_, _ = fmt.Fprintf(w, "\nQR code refreshed (#%d) - scan this one instead:\n", codes)
 			}
 			renderQR(evt.Code, w)
-			fmt.Fprintln(w, "\nWaiting for QR code scan...")
+			_, _ = fmt.Fprintln(w, "\nWaiting for QR code scan...")
 		case "success":
 			return pairingQRSucceeded
 		case "timeout":

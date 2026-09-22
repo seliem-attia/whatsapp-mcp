@@ -292,20 +292,46 @@ Download media from a received message.
 
 #### `transcribe_audio`
 
-Transcribe a voice note locally with whisper.cpp and return its text. The
-transcript is also written into the message's `content` field, which is empty
-for every audio message, so afterwards it is readable through `list_messages`
+Transcribe a voice note with whisper.cpp (the default) or an OpenAI-compatible
+endpoint and return its text. The transcript is also written into the message's
+empty `content` field, so afterwards it is readable through `list_messages`
 by any client — including one with no filesystem access — without transcribing
-again. Nothing leaves the machine.
+again. whisper.cpp runs entirely on this machine; the HTTP provider sends audio
+to the endpoint you configure. Use a loopback URL to keep transcription local.
 
 A stored transcript is returned immediately; a fresh one took about 2 s for a
 30-second note with `large-v3-turbo` on an M-series Mac. Transcripts are
-prefixed with `[transcript (whisper <model>)]` so they cannot be mistaken for
+prefixed with `[transcript (whisper <model>)]` or
+`[transcript (openai_compatible <model>)]` so they cannot be mistaken for
 text a human typed, and a real message is never overwritten.
 
 **Requirements:** [whisper.cpp](https://github.com/ggerganov/whisper.cpp)
 (`whisper-cli` on `PATH`), FFmpeg, and `WHISPER_MODEL` pointing at a model
 file. Optionally `WHISPER_LANGUAGE` (default `auto`).
+
+To reuse an existing service, such as a local Parakeet server, configure:
+
+```env
+WHATSAPP_TRANSCRIPTION_PROVIDER=openai_compatible
+WHATSAPP_TRANSCRIPTION_URL=http://127.0.0.1:8178/v1/audio/transcriptions
+WHATSAPP_TRANSCRIPTION_MODEL=parakeet
+```
+
+`WHATSAPP_TRANSCRIPTION_PROVIDER` defaults to `whisper_cpp`. For
+`openai_compatible`, URL and MODEL are required. URL is the **full endpoint**;
+no path is appended. Optional `WHATSAPP_TRANSCRIPTION_API_KEY` supplies a bearer
+token, and `WHATSAPP_TRANSCRIPTION_LANGUAGE` supplies a language code (`auto`
+by default, omitted from the HTTP request). This provider uploads the original
+audio using multipart `file`, `model`, and `response_format=json`; the server
+must decode it (including WhatsApp Opus/OGG) and return `{"text": "..."}`.
+It requires no local whisper.cpp, model file, or FFmpeg. Remote URLs send audio
+off the machine; redirects, environment proxies, `.netrc` credentials, and
+automatic provider fallbacks are disabled.
+HTTP connections time out after 10 seconds, HTTP reads and Whisper inference
+after 300 seconds, and local FFmpeg decoding after 60 seconds.
+
+Stored transcripts are reused across provider changes unless `force=true`.
+Cache reads and writes use both message ID and chat JID.
 
 **Parameters:**
 

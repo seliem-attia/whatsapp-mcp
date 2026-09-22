@@ -833,7 +833,12 @@ func (store *MessageStore) StoreMessage(id, chatJID, sender, content string, tim
 		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 		ON CONFLICT(id, chat_jid) DO UPDATE SET
 			sender = excluded.sender,
-			content = excluded.content,
+			content = CASE
+				WHEN excluded.media_type = 'audio' AND excluded.content = ''
+					AND messages.media_type = 'audio' AND messages.content LIKE '[transcript (%'
+				THEN messages.content
+				ELSE excluded.content
+			END,
 			timestamp = excluded.timestamp,
 			is_from_me = excluded.is_from_me,
 			media_type = excluded.media_type,

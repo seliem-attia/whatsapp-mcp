@@ -469,16 +469,17 @@ def download_media(message_id: str, chat_jid: str) -> dict[str, Any]:
 
 @mcp.tool()
 def transcribe_audio(message_id: str, chat_jid: str, force: bool = False) -> dict[str, Any]:
-    """Transcribe a WhatsApp voice note locally and return its text.
+    """Transcribe a WhatsApp voice note and return its text.
 
-    Runs whisper.cpp on this machine; the audio never leaves it. The transcript
-    is also written into the message's content field, which is empty for every
-    audio message, so afterwards it is readable through list_messages by any
+    Runs whisper.cpp locally by default, or sends audio to the operator's
+    configured OpenAI-compatible endpoint. The transcript is also written into
+    the message's empty content field, so afterwards it is readable through list_messages by any
     client — including one with no filesystem access — without transcribing
     again.
 
     Call this for a voice note whose content field is still empty. Requires
-    whisper.cpp, FFmpeg, and WHISPER_MODEL pointing at a model file.
+    whisper.cpp, FFmpeg, and WHISPER_MODEL for the default provider; alternatively
+    configure WHATSAPP_TRANSCRIPTION_PROVIDER=openai_compatible, URL and MODEL.
 
     Args:
         message_id: The ID of the message containing the voice note
@@ -489,7 +490,7 @@ def transcribe_audio(message_id: str, chat_jid: str, force: bool = False) -> dic
         A dictionary with success status and the transcript
     """
     if not force:
-        existing = transcription.stored_transcript(MESSAGES_DB_PATH, message_id)
+        existing = transcription.stored_transcript(MESSAGES_DB_PATH, message_id, chat_jid)
         if existing:
             return {"success": True, "message": "Transcript already stored", "transcript": existing}
 
@@ -507,18 +508,19 @@ def transcribe_audio(message_id: str, chat_jid: str, force: bool = False) -> dic
     if not transcription.is_audio(file_path):
         return {
             "success": False,
-            "message": "This message is not audio. Use view_media or download_media instead.",
+            "message": "This message is not audio. Use download_media instead.",
             "file_path": file_path,
         }
 
     try:
-        model = transcription.model_path()
+        provider = transcription.provider_name()
+        model = transcription.configured_model(provider)
         with tempfile.TemporaryDirectory() as work_dir:
-            text = transcription.transcribe_file(file_path, work_dir, model=model)
+            text = transcription.transcribe_file(file_path, work_dir, model=model, provider=provider)
     except transcription.TranscriptionError as exc:
         return {"success": False, "message": str(exc)}
 
-    if not transcription.store_transcript(MESSAGES_DB_PATH, message_id, text, model):
+    if not transcription.store_transcript(MESSAGES_DB_PATH, message_id, chat_jid, text, model, provider=provider):
         # The words are worth returning even when the row could not be updated,
         # but say so: without the row, list_messages will not show them.
         return {
@@ -530,7 +532,7 @@ def transcribe_audio(message_id: str, chat_jid: str, force: bool = False) -> dic
     return {
         "success": True,
         "message": "Transcribed",
-        "transcript": f"{transcription.label(model)}{text}",
+        "transcript": f"{transcription.label(model, provider)}{text}",
     }
 
 

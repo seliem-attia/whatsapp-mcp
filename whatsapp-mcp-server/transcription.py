@@ -1,4 +1,4 @@
-"""Transcribe WhatsApp voice notes locally with whisper.cpp.
+"""Transcribe voice notes with whisper.cpp or a configured HTTP service.
 
 An audio message carries no text, so its ``content`` column in messages.db is
 empty and a client that cannot read the filesystem has no way to learn what was
@@ -6,8 +6,8 @@ said. Transcribing into that empty column makes the words reachable through the
 ordinary message tools, for any client, without a second server and without
 transcribing the same note twice.
 
-Nothing leaves the machine: whisper.cpp runs locally and the audio is only ever
-read from disk.
+Whisper runs locally by default. The optional OpenAI-compatible provider sends
+audio only to the endpoint explicitly configured by the operator.
 """
 
 import os
@@ -16,6 +16,9 @@ import sqlite3
 import subprocess
 import time
 from pathlib import Path
+from urllib.parse import urlsplit
+
+import requests
 
 # Marks text this module produced. Speech recognition gets words wrong, so a
 # transcript must never be mistaken for something a human typed — and the
@@ -30,6 +33,7 @@ WHISPER_BINARY = "whisper-cli"
 
 # Whisper wants 16 kHz mono PCM; phone voice notes are Opus.
 TARGET_SAMPLE_RATE = "16000"
+TRANSCRIPTION_TIMEOUT = 300
 
 
 class TranscriptionError(RuntimeError):
@@ -71,14 +75,76 @@ def language() -> str:
     return os.getenv("WHISPER_LANGUAGE", DEFAULT_LANGUAGE).strip() or DEFAULT_LANGUAGE
 
 
-def label(model: str) -> str:
+def provider_name() -> str:
+    provider = os.getenv("WHATSAPP_TRANSCRIPTION_PROVIDER", "whisper_cpp").strip() or "whisper_cpp"
+    if provider not in {"whisper_cpp", "openai_compatible"}:
+        raise TranscriptionError("WHATSAPP_TRANSCRIPTION_PROVIDER must be whisper_cpp or openai_compatible")
+    return provider
+
+
+def configured_model(provider: str) -> str:
+    if provider == "whisper_cpp":
+        return model_path()
+    model = os.getenv("WHATSAPP_TRANSCRIPTION_MODEL", "").strip()
+    if not model:
+        raise TranscriptionError("Set WHATSAPP_TRANSCRIPTION_MODEL to the model ID served by your endpoint")
+    return model
+
+
+def label(model: str, provider: str = "whisper_cpp") -> str:
     """The prefix stored in front of a transcript."""
-    return f"{TRANSCRIPT_MARKER} (whisper {Path(model).stem})] "
+    source = f"whisper {Path(model).stem}" if provider == "whisper_cpp" else f"{provider} {model}"
+    return f"{TRANSCRIPT_MARKER} ({source})] "
+
+
+def transcribe_http(source: Path, model: str) -> str:
+    url = os.getenv("WHATSAPP_TRANSCRIPTION_URL", "").strip()
+    try:
+        parsed = urlsplit(url)
+        valid = parsed.scheme in {"http", "https"} and parsed.hostname and not parsed.username and not parsed.password
+    except ValueError:
+        valid = False
+    if not valid:
+        raise TranscriptionError(
+            "Set WHATSAPP_TRANSCRIPTION_URL to a full HTTP(S) transcription endpoint without credentials"
+        )
+    data = {"model": model, "response_format": "json"}
+    lang = os.getenv("WHATSAPP_TRANSCRIPTION_LANGUAGE", "auto").strip()
+    if lang and lang != "auto":
+        data["language"] = lang
+    key = os.getenv("WHATSAPP_TRANSCRIPTION_API_KEY", "").strip()
+    headers = {"Authorization": f"Bearer {key}"} if key else {}
+    try:
+        with requests.Session() as session, source.open("rb") as audio:
+            # Ambient proxies can send even loopback uploads off-machine, and
+            # .netrc can override the explicitly configured bearer token.
+            session.trust_env = False
+            # No redirect or fallback: the operator chooses where private audio goes.
+            response = session.post(
+                url,
+                files={"file": (source.name, audio)},
+                data=data,
+                headers=headers,
+                timeout=(10, TRANSCRIPTION_TIMEOUT),
+                allow_redirects=False,
+            )
+        with response:
+            if not 200 <= response.status_code < 300:
+                raise TranscriptionError(f"Transcription endpoint returned HTTP {response.status_code}")
+            payload = response.json()
+    except (requests.RequestException, ValueError, OSError) as exc:
+        # Exception URLs and response bodies can contain credentials or private data.
+        raise TranscriptionError(f"Transcription request failed ({type(exc).__name__})") from None
+    text = payload.get("text") if isinstance(payload, dict) else None
+    if not isinstance(text, str) or not text.strip():
+        raise TranscriptionError("Transcription endpoint returned no non-empty text field")
+    return normalise(text)
 
 
 def decode_command(source: Path, destination: Path) -> list[str]:
     return [
         "ffmpeg",
+        "-nostdin",
         "-v",
         "error",
         "-y",
@@ -103,7 +169,9 @@ def normalise(text: str) -> str:
     return " ".join(text.split())
 
 
-def transcribe_file(path: str | Path, work_dir: str | Path, model: str | None = None) -> str:
+def transcribe_file(
+    path: str | Path, work_dir: str | Path, model: str | None = None, provider: str = "whisper_cpp"
+) -> str:
     """Transcribe one audio file and return its text.
 
     Raises:
@@ -113,6 +181,8 @@ def transcribe_file(path: str | Path, work_dir: str | Path, model: str | None = 
     source = Path(path)
     if not source.is_file():
         raise TranscriptionError(f"Audio file not found: {source}")
+    if provider == "openai_compatible":
+        return transcribe_http(source, model or configured_model(provider))
     if not ffmpeg_available():
         raise TranscriptionError("FFmpeg is required to decode voice notes for transcription")
     if not whisper_available():
@@ -121,16 +191,12 @@ def transcribe_file(path: str | Path, work_dir: str | Path, model: str | None = 
     resolved_model = model or model_path()
     wav = Path(work_dir) / f"{source.stem}.wav"
 
-    decoded = subprocess.run(decode_command(source, wav), capture_output=True, check=False)
+    decoded = run_command(decode_command(source, wav), timeout=60)
     if decoded.returncode != 0 or not wav.exists():
         detail = decoded.stderr.decode(errors="replace").strip()[:200]
         raise TranscriptionError(f"Could not decode the audio: {detail}")
 
-    recognised = subprocess.run(
-        whisper_command(resolved_model, wav, language()),
-        capture_output=True,
-        check=False,
-    )
+    recognised = run_command(whisper_command(resolved_model, wav, language()), timeout=TRANSCRIPTION_TIMEOUT)
     if recognised.returncode != 0:
         detail = recognised.stderr.decode(errors="replace").strip()[:200]
         raise TranscriptionError(f"Transcription failed: {detail}")
@@ -141,7 +207,14 @@ def transcribe_file(path: str | Path, work_dir: str | Path, model: str | None = 
     return text
 
 
-def stored_transcript(db_path: str, message_id: str) -> str | None:
+def run_command(command: list[str], timeout: int) -> subprocess.CompletedProcess:
+    try:
+        return subprocess.run(command, stdin=subprocess.DEVNULL, capture_output=True, check=False, timeout=timeout)
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        raise TranscriptionError(f"{command[0]} failed ({type(exc).__name__})") from None
+
+
+def stored_transcript(db_path: str, message_id: str, chat_jid: str) -> str | None:
     """The transcript already on the message row, if any."""
     try:
         connection = sqlite3.connect(db_path, timeout=10)
@@ -149,8 +222,8 @@ def stored_transcript(db_path: str, message_id: str) -> str | None:
         return None
     try:
         row = connection.execute(
-            "SELECT content FROM messages WHERE id = ? AND media_type = 'audio'",
-            (message_id,),
+            "SELECT content FROM messages WHERE id = ? AND chat_jid = ? AND media_type = 'audio'",
+            (message_id, chat_jid),
         ).fetchone()
     except sqlite3.Error:
         return None
@@ -164,9 +237,11 @@ def stored_transcript(db_path: str, message_id: str) -> str | None:
 def store_transcript(
     db_path: str,
     message_id: str,
+    chat_jid: str,
     text: str,
     model: str,
     attempts: int = 3,
+    provider: str = "whisper_cpp",
 ) -> bool:
     """Write a transcript onto the message row. True when it is there afterwards.
 
@@ -180,7 +255,7 @@ def store_transcript(
     miss would leave the text invisible to clients, which is the whole point of
     storing it.
     """
-    content = f"{label(model)}{text}"
+    content = f"{label(model, provider)}{text}"
     for attempt in range(attempts):
         try:
             connection = sqlite3.connect(db_path, timeout=10)
@@ -188,12 +263,14 @@ def store_transcript(
                 with connection:
                     cursor = connection.execute(
                         "UPDATE messages SET content = ? "
-                        "WHERE id = ? AND media_type = 'audio' "
+                        "WHERE id = ? AND chat_jid = ? AND media_type = 'audio' "
                         "AND (content IS NULL OR content = '' OR content LIKE ?)",
-                        (content, message_id, f"{TRANSCRIPT_MARKER}%"),
+                        (content, message_id, chat_jid, f"{TRANSCRIPT_MARKER}%"),
                     )
                     changed = cursor.rowcount
-                row = connection.execute("SELECT content FROM messages WHERE id = ?", (message_id,)).fetchone()
+                row = connection.execute(
+                    "SELECT content FROM messages WHERE id = ? AND chat_jid = ?", (message_id, chat_jid)
+                ).fetchone()
             finally:
                 connection.close()
             if row and (row[0] or "") == content:

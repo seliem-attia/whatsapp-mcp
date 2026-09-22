@@ -7,8 +7,13 @@ from typing import Any
 from mcp.server.fastmcp import FastMCP, Image
 
 import media_preview
+import transcription
 from mcp_config import resolve_host, resolve_port, resolve_transport
 from parent_watchdog import install_stdio_parent_watchdog
+from whatsapp import (
+    MESSAGES_DB_PATH,
+    msg_to_dict,
+)
 from whatsapp import (
     download_media as whatsapp_download_media,
 )
@@ -38,9 +43,6 @@ from whatsapp import (
 )
 from whatsapp import (
     mark_messages_read as whatsapp_mark_messages_read,
-)
-from whatsapp import (
-    msg_to_dict,
 )
 from whatsapp import (
     search_contacts as whatsapp_search_contacts,
@@ -485,6 +487,11 @@ def view_media(message_id: str, chat_jid: str, max_dimension: int = 1024) -> Any
     Returns:
         Image content on success, otherwise a dictionary explaining why not
     """
+    try:
+        media_preview.validate_max_dimension(max_dimension)
+    except media_preview.PreviewError as exc:
+        return {"success": False, "message": str(exc)}
+
     file_path = whatsapp_download_media(message_id, chat_jid)
     if not file_path:
         return {"success": False, "message": "Failed to download media"}
@@ -496,6 +503,75 @@ def view_media(message_id: str, chat_jid: str, max_dimension: int = 1024) -> Any
             return {"success": False, "message": str(exc), "file_path": file_path}
 
     return Image(data=data, format=image_format)
+
+
+@mcp.tool()
+def transcribe_audio(message_id: str, chat_jid: str, force: bool = False) -> dict[str, Any]:
+    """Transcribe a WhatsApp voice note and return its text.
+
+    Runs whisper.cpp locally by default, or sends audio to the operator's
+    configured OpenAI-compatible endpoint. The transcript is also written into
+    the message's empty content field, so afterwards it is readable through list_messages by any
+    client — including one with no filesystem access — without transcribing
+    again.
+
+    Call this for a voice note whose content field is still empty. Requires
+    whisper.cpp, FFmpeg, and WHISPER_MODEL for the default provider; alternatively
+    configure WHATSAPP_TRANSCRIPTION_PROVIDER=openai_compatible, URL and MODEL.
+
+    Args:
+        message_id: The ID of the message containing the voice note
+        chat_jid: The JID of the chat containing the message
+        force: Transcribe again even when a transcript is already stored
+
+    Returns:
+        A dictionary with success status and the transcript
+    """
+    if not force:
+        existing = transcription.stored_transcript(MESSAGES_DB_PATH, message_id, chat_jid)
+        if existing:
+            return {"success": True, "message": "Transcript already stored", "transcript": existing}
+
+    # WhatsApp expires media server-side after a few weeks, so the file has to
+    # be on disk. This is a no-op when the bridge already downloaded it.
+    file_path = whatsapp_download_media(message_id, chat_jid)
+    if not file_path:
+        return {
+            "success": False,
+            "message": (
+                "Could not obtain the audio file. WhatsApp expires media after a while, "
+                "so an old voice note may no longer be downloadable."
+            ),
+        }
+    if not transcription.is_audio(file_path):
+        return {
+            "success": False,
+            "message": "This message is not audio. Use download_media instead.",
+            "file_path": file_path,
+        }
+
+    try:
+        provider = transcription.provider_name()
+        model = transcription.configured_model(provider)
+        with tempfile.TemporaryDirectory() as work_dir:
+            text = transcription.transcribe_file(file_path, work_dir, model=model, provider=provider)
+    except transcription.TranscriptionError as exc:
+        return {"success": False, "message": str(exc)}
+
+    if not transcription.store_transcript(MESSAGES_DB_PATH, message_id, chat_jid, text, model, provider=provider):
+        # The words are worth returning even when the row could not be updated,
+        # but say so: without the row, list_messages will not show them.
+        return {
+            "success": True,
+            "message": "Transcribed, but the transcript could not be stored on the message row",
+            "transcript": text,
+        }
+
+    return {
+        "success": True,
+        "message": "Transcribed",
+        "transcript": f"{transcription.label(model, provider)}{text}",
+    }
 
 
 def shutdown_handler(signum, frame):

@@ -26,6 +26,9 @@ PASSTHROUGH_SUFFIXES = frozenset({".jpg", ".jpeg", ".png", ".webp", ".gif"})
 MAX_PASSTHROUGH_BYTES = 4_000_000
 
 DEFAULT_MAX_DIMENSION = 1024
+MIN_MAX_DIMENSION = 1
+MAX_MAX_DIMENSION = 2048
+FFMPEG_TIMEOUT_SECONDS = 60
 
 
 class PreviewError(RuntimeError):
@@ -39,6 +42,16 @@ def is_audio(path: str | Path) -> bool:
 
 def ffmpeg_available() -> bool:
     return shutil.which("ffmpeg") is not None
+
+
+def validate_max_dimension(max_dimension: int) -> None:
+    """Reject preview dimensions outside the bounded, context-safe range."""
+    if not isinstance(max_dimension, int) or isinstance(max_dimension, bool) or not (
+        MIN_MAX_DIMENSION <= max_dimension <= MAX_MAX_DIMENSION
+    ):
+        raise PreviewError(
+            f"max_dimension must be an integer from {MIN_MAX_DIMENSION} to {MAX_MAX_DIMENSION} pixels"
+        )
 
 
 def scale_filter(max_dimension: int) -> str:
@@ -81,10 +94,11 @@ def render_preview(
             renderer is available and the file is too large to pass through.
     """
     source = Path(path)
+    validate_max_dimension(max_dimension)
     if is_audio(source):
         raise PreviewError(
-            "This message is audio, not an image. Its transcript is stored in the "
-            "message content — read it with list_messages."
+            "This message is audio, not an image. Use transcribe_audio, then read "
+            "its stored transcript with list_messages."
         )
     if not source.is_file():
         raise PreviewError(f"Media file not found: {source}")
@@ -103,10 +117,15 @@ def render_preview(
             ffmpeg_command(source, destination, max_dimension),
             capture_output=True,
             check=False,
+            shell=False,
+            stdin=subprocess.DEVNULL,
+            timeout=FFMPEG_TIMEOUT_SECONDS,
         )
         if result.returncode != 0 or not destination.exists():
             detail = result.stderr.decode(errors="replace").strip()[:200]
             raise PreviewError(f"Could not render this media as an image: {detail}")
         return destination.read_bytes(), "jpeg"
+    except subprocess.TimeoutExpired as exc:
+        raise PreviewError(f"Could not render this media within {FFMPEG_TIMEOUT_SECONDS} seconds") from exc
     finally:
         destination.unlink(missing_ok=True)

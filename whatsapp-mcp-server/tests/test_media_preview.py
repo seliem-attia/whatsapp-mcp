@@ -22,7 +22,7 @@ def test_audio_is_rejected_with_a_pointer_to_the_transcript(tmp_path):
     voice_note = _write(tmp_path / "audio_1.ogg")
     with pytest.raises(media_preview.PreviewError) as excinfo:
         media_preview.render_preview(voice_note)
-    assert "transcript" in str(excinfo.value).lower()
+    assert "transcribe_audio" in str(excinfo.value)
 
 
 def test_missing_file_is_reported(tmp_path):
@@ -79,7 +79,10 @@ def test_rendered_bytes_are_returned_and_the_temp_file_is_cleaned_up(tmp_path, m
     work_dir = tmp_path / "work"
     work_dir.mkdir()
 
-    def fake_run(command, **_kwargs):
+    def fake_run(command, **kwargs):
+        assert kwargs["stdin"] is subprocess.DEVNULL
+        assert kwargs["timeout"] == media_preview.FFMPEG_TIMEOUT_SECONDS
+        assert kwargs["shell"] is False
         destination = media_preview.Path(command[-1])
         destination.write_bytes(b"rendered-jpeg")
         return subprocess.CompletedProcess(command, 0, b"", b"")
@@ -88,6 +91,28 @@ def test_rendered_bytes_are_returned_and_the_temp_file_is_cleaned_up(tmp_path, m
     data, image_format = media_preview.render_preview(source, work_dir=work_dir)
     assert (data, image_format) == (b"rendered-jpeg", "jpeg")
     assert list(work_dir.iterdir()) == []
+
+
+def test_render_timeout_is_reported_and_the_temp_file_is_cleaned_up(tmp_path, monkeypatch):
+    monkeypatch.setattr(media_preview.shutil, "which", lambda _: "/usr/bin/ffmpeg")
+    source = _write(tmp_path / "video_1.mp4")
+    work_dir = tmp_path / "work"
+    work_dir.mkdir()
+
+    def fake_run(command, **_kwargs):
+        media_preview.Path(command[-1]).write_bytes(b"partial-preview")
+        raise subprocess.TimeoutExpired(command, media_preview.FFMPEG_TIMEOUT_SECONDS)
+
+    monkeypatch.setattr(media_preview.subprocess, "run", fake_run)
+    with pytest.raises(media_preview.PreviewError, match="within 60 seconds"):
+        media_preview.render_preview(source, work_dir=work_dir)
+    assert list(work_dir.iterdir()) == []
+
+
+@pytest.mark.parametrize("max_dimension", [0, -1, 2049, 1.5, True])
+def test_invalid_max_dimension_is_rejected(max_dimension):
+    with pytest.raises(media_preview.PreviewError, match="1 to 2048"):
+        media_preview.validate_max_dimension(max_dimension)
 
 
 def test_ffmpeg_failure_surfaces_its_reason(tmp_path, monkeypatch):

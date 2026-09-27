@@ -5,6 +5,112 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.0](https://github.com/seliem-attia/whatsapp-mcp/compare/v0.7.0...v0.1.0) (2026-09-27)
+
+
+### release
+
+* adopt Release Please for automated versioning/changelog ([#15](https://github.com/seliem-attia/whatsapp-mcp/issues/15)) ([bef1a96](https://github.com/seliem-attia/whatsapp-mcp/commit/bef1a966ef254947f37833d06549665901133890))
+
+
+### Features
+
+* add explicit message read receipts ([#201](https://github.com/seliem-attia/whatsapp-mcp/issues/201)) ([e35224e](https://github.com/seliem-attia/whatsapp-mcp/commit/e35224e182fe06632ae0436949dda3cded544b17))
+* add image media support in webhook forwarding ([#45](https://github.com/seliem-attia/whatsapp-mcp/issues/45)) ([43d7794](https://github.com/seliem-attia/whatsapp-mcp/commit/43d7794d8e003dc72fb9dba3b55eacee479753c8))
+* **bridge:** --full-history-pair flag to request full history at pair time ([#37](https://github.com/seliem-attia/whatsapp-mcp/issues/37)) ([59b834f](https://github.com/seliem-attia/whatsapp-mcp/commit/59b834fcba2b0d9994d6a21946aae59ab65cff99))
+* **bridge:** add macOS launchd installer ([#116](https://github.com/seliem-attia/whatsapp-mcp/issues/116)) ([dbc63ae](https://github.com/seliem-attia/whatsapp-mcp/commit/dbc63ae81b6c0d1e11fa9a06122522f1ce00e56b))
+* **bridge:** add on-demand history sync for a single chat ([#168](https://github.com/seliem-attia/whatsapp-mcp/issues/168)) ([f44440b](https://github.com/seliem-attia/whatsapp-mcp/commit/f44440b5874dba67c3daff2709458b2c45d7e1f7))
+* **bridge:** add outbound webhook opt-out ([#204](https://github.com/seliem-attia/whatsapp-mcp/issues/204)) ([6c3f3fe](https://github.com/seliem-attia/whatsapp-mcp/commit/6c3f3fe2763584879166b5f92834cf7635d16a58))
+* **bridge:** add support for stickers ([#110](https://github.com/seliem-attia/whatsapp-mcp/issues/110)) ([5d98686](https://github.com/seliem-attia/whatsapp-mcp/commit/5d98686b6007c768cefcbd314f2b2232724d0db4))
+* **bridge:** capture incoming WhatsApp call events ([#39](https://github.com/seliem-attia/whatsapp-mcp/issues/39)) ([4f1664a](https://github.com/seliem-attia/whatsapp-mcp/commit/4f1664a9e54858e0b48f1d417fd4aee9ea3bbf35))
+* **bridge:** configurable linked-device name via WHATSAPP_DEVICE_NAME ([#157](https://github.com/seliem-attia/whatsapp-mcp/issues/157)) ([1a71032](https://github.com/seliem-attia/whatsapp-mcp/commit/1a71032fd878c19eea346292f147350fadb4d818)), closes [#156](https://github.com/seliem-attia/whatsapp-mcp/issues/156)
+* **bridge:** forward reaction webhook events ([#129](https://github.com/seliem-attia/whatsapp-mcp/issues/129)) ([2c8062f](https://github.com/seliem-attia/whatsapp-mcp/commit/2c8062fc1990580fe2172b0d88bc1db30d0100cb))
+* **bridge:** persist chat read state from read receipts + history-sync backfill ([#155](https://github.com/seliem-attia/whatsapp-mcp/issues/155)) ([6c6ec00](https://github.com/seliem-attia/whatsapp-mcp/commit/6c6ec006a1e67d236172425dbb96a74d6cb9c7c3))
+* **bridge:** skip status media and add WHATSAPP_AUTO_DOWNLOAD_MEDIA opt-out ([#237](https://github.com/seliem-attia/whatsapp-mcp/issues/237)) ([23a6cf9](https://github.com/seliem-attia/whatsapp-mcp/commit/23a6cf9c3f77f5b51d445a56c5c21070d444921b))
+* capture inbound reactions and add /api/react endpoint ([#108](https://github.com/seliem-attia/whatsapp-mcp/issues/108)) ([58645d5](https://github.com/seliem-attia/whatsapp-mcp/commit/58645d53c57d619dd22454e4b52ab0c41538f445)), closes [#106](https://github.com/seliem-attia/whatsapp-mcp/issues/106)
+* handle incoming media (images, audio, videos, documents) and show names in group messages ([#34](https://github.com/seliem-attia/whatsapp-mcp/issues/34)) ([141b9a1](https://github.com/seliem-attia/whatsapp-mcp/commit/141b9a156e61f2ddd82380208dc3fca7455221c6))
+* **mcp:** add @-mention support to send_message ([#190](https://github.com/seliem-attia/whatsapp-mcp/issues/190)) ([b86a57d](https://github.com/seliem-attia/whatsapp-mcp/commit/b86a57d3711f96ba3750d6a4eabf96f8279473b0))
+* **mcp:** add view_media so media is reachable without a filesystem ([#246](https://github.com/seliem-attia/whatsapp-mcp/issues/246)) ([bfa2c08](https://github.com/seliem-attia/whatsapp-mcp/commit/bfa2c08185d910cf11f457266fbbdbb2465994dc))
+* **mcp:** support http and sse transports via env var ([#112](https://github.com/seliem-attia/whatsapp-mcp/issues/112)) ([f885c6c](https://github.com/seliem-attia/whatsapp-mcp/commit/f885c6c37a8512f6df7437c0779b32e10fb1823c))
+* **mcp:** transcribe voice notes with configurable providers ([#247](https://github.com/seliem-attia/whatsapp-mcp/issues/247)) ([b1c45b4](https://github.com/seliem-attia/whatsapp-mcp/commit/b1c45b4dd79e5a756a0cc19174ec59aa81f860c0))
+* optional caption on send_file ([#193](https://github.com/seliem-attia/whatsapp-mcp/issues/193)) ([9f6324c](https://github.com/seliem-attia/whatsapp-mcp/commit/9f6324c92f6a30e3231d8337871e206014a2b66a))
+* persist inbound quoted_message_id and add reply support to /api/send ([#109](https://github.com/seliem-attia/whatsapp-mcp/issues/109)) ([731e3eb](https://github.com/seliem-attia/whatsapp-mcp/commit/731e3eb46ab94200396d92607c6b8e8f27c306d9)), closes [#107](https://github.com/seliem-attia/whatsapp-mcp/issues/107)
+* send files and audio messages ([9a9fc25](https://github.com/seliem-attia/whatsapp-mcp/commit/9a9fc2526da3f5fd5b663423ab8b80daa0b2e7e8))
+
+
+### Bug Fixes
+
+* **bridge:** authenticate outbound webhook POSTs ([3e8b919](https://github.com/seliem-attia/whatsapp-mcp/commit/3e8b919290310fbaedfe9bcfa29f03f8336cd1e2))
+* **bridge:** auto-download runs after StoreMessage to avoid lookup race ([#41](https://github.com/seliem-attia/whatsapp-mcp/issues/41)) ([6a711b7](https://github.com/seliem-attia/whatsapp-mcp/commit/6a711b72740b44715c0c7e94ac4c432ee533ff32))
+* **bridge:** bump whatsmeow for client compatibility ([#182](https://github.com/seliem-attia/whatsapp-mcp/issues/182)) ([544e9e7](https://github.com/seliem-attia/whatsapp-mcp/commit/544e9e737e980cf652794262fb0f3957e5c10fa9))
+* **bridge:** bump whatsmeow so WhatsApp accepts new device pairing ([#128](https://github.com/seliem-attia/whatsapp-mcp/issues/128)) ([c5cc5c7](https://github.com/seliem-attia/whatsapp-mcp/commit/c5cc5c78dcdc64ded482bf451507a785f5afbed6))
+* **bridge:** document filename leaked the sender's absolute path ([#218](https://github.com/seliem-attia/whatsapp-mcp/issues/218)) ([143d7a7](https://github.com/seliem-attia/whatsapp-mcp/commit/143d7a760c12a95b40e4e8f3c588a0d6cfe1f5f3))
+* **bridge:** extract text from Template, Button, Interactive, and List messages ([#134](https://github.com/seliem-attia/whatsapp-mcp/issues/134)) ([a76645a](https://github.com/seliem-attia/whatsapp-mcp/commit/a76645ae8ca5a80e3e388fd62751c45a3a23933d))
+* **bridge:** fall back to local whatsmeow_contacts for chat name resolution ([#135](https://github.com/seliem-attia/whatsapp-mcp/issues/135)) ([839d069](https://github.com/seliem-attia/whatsapp-mcp/commit/839d069ec95902a433882cf75cc5d26e3710686e))
+* **bridge:** forward native WhatsApp activation metadata ([#173](https://github.com/seliem-attia/whatsapp-mcp/issues/173)) ([b823a9e](https://github.com/seliem-attia/whatsapp-mcp/commit/b823a9e282356c734a9ae3d36291a76a46102603))
+* **bridge:** guard resolveLIDChat against a client without a LID store ([#230](https://github.com/seliem-attia/whatsapp-mcp/issues/230)) ([88ba809](https://github.com/seliem-attia/whatsapp-mcp/commit/88ba8097c382bfe129add60377a8e5a242d00c9f))
+* **bridge:** handle ProtocolMessage_REVOKE (delete-for-everyone) events ([#99](https://github.com/seliem-attia/whatsapp-mcp/issues/99)) ([ab08698](https://github.com/seliem-attia/whatsapp-mcp/commit/ab08698eb56f19d6b360b5c452fcab280d3d33cd))
+* **bridge:** handle StreamReplaced event to recover from session conflicts ([#27](https://github.com/seliem-attia/whatsapp-mcp/issues/27)) ([27a4b5c](https://github.com/seliem-attia/whatsapp-mcp/commit/27a4b5c42a85438ab806cf27ab5032f830fdb433))
+* **bridge:** include message ID in media filenames to prevent same-second collisions ([#40](https://github.com/seliem-attia/whatsapp-mcp/issues/40)) ([02ce549](https://github.com/seliem-attia/whatsapp-mcp/commit/02ce5494f72e0ada65d6e21e2f7990aa6170d0c5))
+* **bridge:** keep CDN auth tokens in directPath to fix 403 media downloads ([#132](https://github.com/seliem-attia/whatsapp-mcp/issues/132)) ([4e354af](https://github.com/seliem-attia/whatsapp-mcp/commit/4e354afde7321dbd4875ed1a870539e05ef1443d))
+* **bridge:** keep launchd monitor alive when the token file read is denied ([#250](https://github.com/seliem-attia/whatsapp-mcp/issues/250)) ([4e10737](https://github.com/seliem-attia/whatsapp-mcp/commit/4e107371bb7b3b9bb304fa9db88f41cbec45d5af))
+* **bridge:** log send caller identity ([#96](https://github.com/seliem-attia/whatsapp-mcp/issues/96)) ([1979b73](https://github.com/seliem-attia/whatsapp-mcp/commit/1979b732d4c6a8ed77e44a91d36a812ff3b4c311))
+* **bridge:** pass message store when sending messages ([#91](https://github.com/seliem-attia/whatsapp-mcp/issues/91)) ([c86b1b2](https://github.com/seliem-attia/whatsapp-mcp/commit/c86b1b210bb1902a683a9e0c443dbe01316c29b7))
+* **bridge:** persist upload metadata for outbound media ([#221](https://github.com/seliem-attia/whatsapp-mcp/issues/221)) ([9b82499](https://github.com/seliem-attia/whatsapp-mcp/commit/9b824994e682b86457c5615c56c79919e1192dd0))
+* **bridge:** preserve message ID in text webhooks ([#220](https://github.com/seliem-attia/whatsapp-mcp/issues/220)) ([e207fd3](https://github.com/seliem-attia/whatsapp-mcp/commit/e207fd3f422914aeb55c1e905790ee730ca731bf))
+* **bridge:** preserve original timestamp on retry-redelivered messages ([#149](https://github.com/seliem-attia/whatsapp-mcp/issues/149)) ([45e674e](https://github.com/seliem-attia/whatsapp-mcp/commit/45e674ef0667303a690bc82de0d8bbc61f4dfd40))
+* **bridge:** render every rotated pairing QR code ([#243](https://github.com/seliem-attia/whatsapp-mcp/issues/243)) ([0076aa4](https://github.com/seliem-attia/whatsapp-mcp/commit/0076aa4cd87e152e76e9a39de52254e69c2f3007))
+* **bridge:** resolve [@lid](https://github.com/lid) sender to phone JID in webhook payload ([#56](https://github.com/seliem-attia/whatsapp-mcp/issues/56)) ([0a36db4](https://github.com/seliem-attia/whatsapp-mcp/commit/0a36db4c70a2ed423ffe75e764e0d33092b67717))
+* **bridge:** set FileName and detect MIME for document sends ([#95](https://github.com/seliem-attia/whatsapp-mcp/issues/95)) ([28aa25c](https://github.com/seliem-attia/whatsapp-mcp/commit/28aa25c77d3ba5e97dc65c47216f57b39e926414))
+* **bridge:** skip media downloads when the message row failed to store ([#231](https://github.com/seliem-attia/whatsapp-mcp/issues/231)) ([8ee9cb6](https://github.com/seliem-attia/whatsapp-mcp/commit/8ee9cb6f83e86f0f8ebcba4cb44c2cee4f38e6e2))
+* **bridge:** surface image/video/document captions in extractTextContent ([#42](https://github.com/seliem-attia/whatsapp-mcp/issues/42)) ([33ef0c0](https://github.com/seliem-attia/whatsapp-mcp/commit/33ef0c057ad47b364f50eba35b074d04a0bd64e1))
+* **bridge:** tighten store and media permissions to owner-only ([#241](https://github.com/seliem-attia/whatsapp-mcp/issues/241)) ([a269163](https://github.com/seliem-attia/whatsapp-mcp/commit/a2691635f0279bc82e23ae430fb33b3c2fa3857c))
+* **ci:** make dependabot auto-approve non-fatal ([#65](https://github.com/seliem-attia/whatsapp-mcp/issues/65)) ([b671e82](https://github.com/seliem-attia/whatsapp-mcp/commit/b671e827d2f728f24b5037b525c27694dc6b428f))
+* **deps:** bump whatsmeow for companion registration ([#244](https://github.com/seliem-attia/whatsapp-mcp/issues/244)) ([2de9d0a](https://github.com/seliem-attia/whatsapp-mcp/commit/2de9d0a59793516aa45478be4e12932353aa1c56))
+* **deps:** preserve Intel macOS cryptography installs ([#188](https://github.com/seliem-attia/whatsapp-mcp/issues/188)) ([cc43c7b](https://github.com/seliem-attia/whatsapp-mcp/commit/cc43c7b02d0c385cbebedac84dbb4b40103e1fa2))
+* enable stricter Go linting (errcheck, unused, ineffassign) ([dc1e7fa](https://github.com/seliem-attia/whatsapp-mcp/commit/dc1e7fa05bf3d879d63177b79c4f9b0d1209dc51))
+* escape monitor-script shell vars in launchd installer ([#130](https://github.com/seliem-attia/whatsapp-mcp/issues/130)) ([a3fcaf9](https://github.com/seliem-attia/whatsapp-mcp/commit/a3fcaf94fa31a5824a4b16677586fc71a6556935))
+* exit orphaned stdio MCP servers on parent death ([#177](https://github.com/seliem-attia/whatsapp-mcp/issues/177)) ([a6869f4](https://github.com/seliem-attia/whatsapp-mcp/commit/a6869f4fb4c2549efa7317872f1dfa7a553dc67a))
+* harden read-state observe/act after [#155](https://github.com/seliem-attia/whatsapp-mcp/issues/155) and [#201](https://github.com/seliem-attia/whatsapp-mcp/issues/201) ([#203](https://github.com/seliem-attia/whatsapp-mcp/issues/203)) ([c3fbd45](https://github.com/seliem-attia/whatsapp-mcp/commit/c3fbd45d6aec4f3a7668f814634910e4ddd3fcd4))
+* **mcp:** deduplicate contact chat results ([0da7399](https://github.com/seliem-attia/whatsapp-mcp/commit/0da7399b5ad04b1972a16ceae7abd5fcab4a63a3))
+* **mcp:** match messages by both phone number and LID via whatsmeow_lid_map ([#43](https://github.com/seliem-attia/whatsapp-mcp/issues/43)) ([7c4f129](https://github.com/seliem-attia/whatsapp-mcp/commit/7c4f1296e52b065ea6917d2800c081fe3f4debe4))
+* **mcp:** remove the converted audio temp file after send ([#227](https://github.com/seliem-attia/whatsapp-mcp/issues/227)) ([5fc9df2](https://github.com/seliem-attia/whatsapp-mcp/commit/5fc9df2eef6a17e4c7219dd3b74aaab51eee82a7))
+* **mcp:** resolve bare numeric LIDs ([#97](https://github.com/seliem-attia/whatsapp-mcp/issues/97)) ([a8779ab](https://github.com/seliem-attia/whatsapp-mcp/commit/a8779abdccece147cef832166c684086043e808a))
+* **mcp:** resolve bridge token from whatsmeow db path ([5926173](https://github.com/seliem-attia/whatsapp-mcp/commit/592617391fdfc67f1a44a5471cfed5bcad2cb43f)), closes [#142](https://github.com/seliem-attia/whatsapp-mcp/issues/142)
+* **mcp:** resolve contacts via whatsmeow store with LID → phone fallback ([#30](https://github.com/seliem-attia/whatsapp-mcp/issues/30)) ([0c846a4](https://github.com/seliem-attia/whatsapp-mcp/commit/0c846a40ecc8ef3408693a9c0180491e173ba10d))
+* **mcp:** serialize message context result ([af0aed6](https://github.com/seliem-attia/whatsapp-mcp/commit/af0aed6d3a8817ec6f20de34722b5dc482a113f1))
+* migrate legacy [@lid](https://github.com/lid) chat rows to phone JIDs ([#13](https://github.com/seliem-attia/whatsapp-mcp/issues/13)) ([e838d31](https://github.com/seliem-attia/whatsapp-mcp/commit/e838d31fdd7321479a2413206cf6e5f339c67a66))
+* pin anyio&lt;4.9 to avoid cancel scope regression ([#44](https://github.com/seliem-attia/whatsapp-mcp/issues/44)) ([21a85b7](https://github.com/seliem-attia/whatsapp-mcp/commit/21a85b776218b1872510f65aecc1766152ccfef6))
+* read WHATSAPP_BRIDGE_PORT env var for REST API port ([#9](https://github.com/seliem-attia/whatsapp-mcp/issues/9)) ([1ae13c5](https://github.com/seliem-attia/whatsapp-mcp/commit/1ae13c5cfd9d6dc0b7393fa493eb092162579001))
+* remove version property for golangci-lint v1.x compatibility ([c4fd9c1](https://github.com/seliem-attia/whatsapp-mcp/commit/c4fd9c1dfcc5897b1a9856884e507ce6de56e4fc))
+* resolve LID contacts in get_contact ([#7](https://github.com/seliem-attia/whatsapp-mcp/issues/7)) ([a1503e6](https://github.com/seliem-attia/whatsapp-mcp/commit/a1503e64ceb61ee15cfb1e8a52d9be7561fa79a7))
+* resolve LID JIDs to phone-based JIDs for consistent chat storage ([#12](https://github.com/seliem-attia/whatsapp-mcp/issues/12)) ([466a403](https://github.com/seliem-attia/whatsapp-mcp/commit/466a4032e449cd15d82ae8691079f128a3781525))
+* resolve phone number JIDs to LIDs before sending ([#8](https://github.com/seliem-attia/whatsapp-mcp/issues/8)) ([6cdfe2a](https://github.com/seliem-attia/whatsapp-mcp/commit/6cdfe2a8069b84cb7b6414c5817f24d857c3a957))
+* security hardening for LAN exposure and Unicode search ([#55](https://github.com/seliem-attia/whatsapp-mcp/issues/55)) ([05e639b](https://github.com/seliem-attia/whatsapp-mcp/commit/05e639ba8560c0a1475a45f9ae5ecd928058e4fa))
+* send and track disappearing-message settings correctly ([#82](https://github.com/seliem-attia/whatsapp-mcp/issues/82)) ([e07bd23](https://github.com/seliem-attia/whatsapp-mcp/commit/e07bd2320d8466d02d42cafdf5aaed859948ff8e))
+* **server:** list_chats/get_chat error when include_last_message=False ([#79](https://github.com/seliem-attia/whatsapp-mcp/issues/79)) ([6cfdb2b](https://github.com/seliem-attia/whatsapp-mcp/commit/6cfdb2bda891dd7de3f359effded7b575fbaaf79))
+
+
+### Performance Improvements
+
+* **bridge:** index messages(chat_jid) to speed up LID migration ([#144](https://github.com/seliem-attia/whatsapp-mcp/issues/144)) ([609ddc2](https://github.com/seliem-attia/whatsapp-mcp/commit/609ddc2056406dc40d226c4fd4ecded92693dc08))
+
+
+### Documentation
+
+* add contributors section and updating instructions to README ([#67](https://github.com/seliem-attia/whatsapp-mcp/issues/67)) ([f6fa977](https://github.com/seliem-attia/whatsapp-mcp/commit/f6fa9775992cdb7c347a101baa8d3eef4d684a7b))
+* add ROADMAP, AGENTS, CONTRIBUTING, CODEOWNERS, issue/PR templates ([#47](https://github.com/seliem-attia/whatsapp-mcp/issues/47)) ([985f8d8](https://github.com/seliem-attia/whatsapp-mcp/commit/985f8d8d22dcbfebda900768aaf8ed9c79d4e6f7))
+* add Windows compatibility instructions to README ([118b136](https://github.com/seliem-attia/whatsapp-mcp/commit/118b136619a663342aa037201314a696273242c0))
+* document WHATSMEOW_DB_PATH env var ([#51](https://github.com/seliem-attia/whatsapp-mcp/issues/51)) ([558c392](https://github.com/seliem-attia/whatsapp-mcp/commit/558c392ca35126cf3b9e73424e1014c603758bd5))
+* explain where runtime data is stored and how to relocate it ([#240](https://github.com/seliem-attia/whatsapp-mcp/issues/240)) ([ce06368](https://github.com/seliem-attia/whatsapp-mcp/commit/ce0636884732b3270ed18f285b5d15d72b4dd413))
+* make AGENTS.md canonical and fix FORWARD_SELF default ([#127](https://github.com/seliem-attia/whatsapp-mcp/issues/127)) ([d31fa06](https://github.com/seliem-attia/whatsapp-mcp/commit/d31fa060cf9fb4a65b8ce0f25744492c1659d72b))
+* **readme:** add demo video overview ([#122](https://github.com/seliem-attia/whatsapp-mcp/issues/122)) ([645a7e5](https://github.com/seliem-attia/whatsapp-mcp/commit/645a7e5a46c7511f030cd5ef20f658eb8faca844))
+* **readme:** document app state recovery ([#117](https://github.com/seliem-attia/whatsapp-mcp/issues/117)) ([b2cf46b](https://github.com/seliem-attia/whatsapp-mcp/commit/b2cf46bc3bc04b46df7886c8af0bd824b6e3fe9e))
+* update README.md ([4dc00bd](https://github.com/seliem-attia/whatsapp-mcp/commit/4dc00bda550db00d92daa9a237809b09c7686071))
+* update remaining "go run main.go" references to "go run ." ([#50](https://github.com/seliem-attia/whatsapp-mcp/issues/50)) ([de75e53](https://github.com/seliem-attia/whatsapp-mcp/commit/de75e53467ba657fb166fda64ad23d8b5cbb9801))
+* Update SECURITY.md with enhanced security policy ([#78](https://github.com/seliem-attia/whatsapp-mcp/issues/78)) ([8cfaee2](https://github.com/seliem-attia/whatsapp-mcp/commit/8cfaee22c4b4371e0634db50a898017a43fabddd))
+* update to VGP standards with mermaid diagrams ([c7baf8a](https://github.com/seliem-attia/whatsapp-mcp/commit/c7baf8a24329f680777d1ad5aad5f364a7e8feae))
+
 ## [0.7.0](https://github.com/verygoodplugins/whatsapp-mcp/compare/v0.6.0...v0.7.0) (2026-09-23)
 
 
